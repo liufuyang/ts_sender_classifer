@@ -4,3 +4,4 @@ target
 *.class
 *.csv
 *.log
+*.txt

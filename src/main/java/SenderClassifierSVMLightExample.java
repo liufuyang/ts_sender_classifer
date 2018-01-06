@@ -1,5 +1,4 @@
-import org.datavec.api.records.reader.RecordReader;
-import org.datavec.api.records.reader.impl.csv.CSVRecordReader;
+import org.datavec.api.conf.Configuration;
 import org.datavec.api.split.FileSplit;
 import org.datavec.api.util.ClassPathResource;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
@@ -20,6 +19,7 @@ import org.nd4j.linalg.learning.config.Adam;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recordreader.MySVMLightRecordReader;
 
 /**
  * This is a sender classifier that try uses the same hackthon data as run in Pytorch
@@ -28,33 +28,28 @@ import org.slf4j.LoggerFactory;
  * Reference examples:
  * https://github.com/deeplearning4j/dl4j-examples/blob/7b4d76c9ff8de7697a1ff97ee917a10f5f3873e3/dl4j-examples/src/main/java/org/deeplearning4j/examples/feedforward/classification/MLPClassifierLinear.java
  */
-public class SenderClassifierExample {
-    private static Logger log = LoggerFactory.getLogger(SenderClassifierExample.class);
+public class SenderClassifierSVMLightExample {
+    private static Logger log = LoggerFactory.getLogger(SenderClassifierSVMLightExample.class);
 
     public static void main(String[] args) throws Exception {
-        //First: get the dataset using the record reader. CSVRecordReader handles loading/parsing
-        int numLinesToSkip = 0;
-        char delimiter = ',';
-        //Second: the RecordReaderDataSetIterator handles conversion to DataSet objects, ready for use in neural network
+
         int labelIndex = 15484;     //15485 values in each row of the feature_label_small.csv CSV: 15484 input features followed by an integer label (class) index. Labels are the 15485th value (index 15484) in each row
         int numClasses = 24501;     //24501 classes (types of senders) in the data set. Classes have integer values 0, 1 or 2 ... and so on
-        int batchSize = 8;       //Iris data set: 150 examples total. We are loading all of them into one DataSet (not recommended for large data sets)
+        int batchSize = 8;
         // 516348 examples, with batchSize is 8, around 64000 iterations per epoch
         int printIterationsNum = 8000; // print score every 8000 iterations
 
-        RecordReader recordReader = new CSVRecordReader(numLinesToSkip,delimiter);
-        recordReader.initialize(new FileSplit(new ClassPathResource("feature_label_train.csv").getFile()));
-        DataSetIterator trainIter = new RecordReaderDataSetIterator(recordReader,batchSize,labelIndex,numClasses);
+        Configuration config = new Configuration();
+        config.setBoolean(MySVMLightRecordReader.ZERO_BASED_INDEXING, true);
+        config.setInt(MySVMLightRecordReader.NUM_FEATURES, labelIndex);
 
-        RecordReader testRecordReader = new CSVRecordReader(numLinesToSkip,delimiter);
-        testRecordReader.initialize(new FileSplit(new ClassPathResource("feature_label_test.csv").getFile()));
+        MySVMLightRecordReader trainRecordReader = new MySVMLightRecordReader();
+        trainRecordReader.initialize(config, new FileSplit(new ClassPathResource("feature_label.svmlight.txt").getFile()));
+        DataSetIterator trainIter = new RecordReaderDataSetIterator(trainRecordReader,batchSize,labelIndex,numClasses);
+
+        MySVMLightRecordReader testRecordReader = new MySVMLightRecordReader();
+        testRecordReader.initialize(config, new FileSplit(new ClassPathResource("feature_label.svmlight.txt").getFile()));
         DataSetIterator testIter = new RecordReaderDataSetIterator(testRecordReader,batchSize,labelIndex,numClasses);
-
-//        allData.shuffle();
-//        SplitTestAndTrain testAndTrain = allData.splitTestAndTrain(0.65);  //Use 65% of data for training
-//
-//        DataSet trainingData = testAndTrain.getTrain();
-//        DataSet testData = testAndTrain.getTest();
 
         final int numInputs = 15484;
         int hiddenLayer1Num = 2000;
