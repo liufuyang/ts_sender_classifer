@@ -33,29 +33,28 @@ public class SenderClassifierSVMLightExample {
 
     public static void main(String[] args) throws Exception {
 
-        int labelIndex = 15484;     //15485 values in each row of the feature_label_small.csv CSV: 15484 input features followed by an integer label (class) index. Labels are the 15485th value (index 15484) in each row
-        int numClasses = 24501;     //24501 classes (types of senders) in the data set. Classes have integer values 0, 1 or 2 ... and so on
-        int batchSize = 8;
-        // 516348 examples, with batchSize is 8, around 64000 iterations per epoch
-        int printIterationsNum = 8000; // print score every 8000 iterations
+        int labelIndex = 15484;         //15485 values in each row of the feature_label_small.csv CSV: 15484 input features followed by an integer label (class) index. Labels are the 15485th value (index 15484) in each row
+        int numClasses = 24501;         //24501 classes (types of senders) in the data set. Classes have integer values 0, 1 or 2 ... and so on
+        int batchSize = 8;              // 516348 examples, with batchSize is 8, around 64000 iterations per epoch
+        int printIterationsNum = 8000;  // print score every 8000 iterations
 
         Configuration config = new Configuration();
         config.setBoolean(MySVMLightRecordReader.ZERO_BASED_INDEXING, true);
         config.setInt(MySVMLightRecordReader.NUM_FEATURES, labelIndex);
 
         MySVMLightRecordReader trainRecordReader = new MySVMLightRecordReader();
-        trainRecordReader.initialize(config, new FileSplit(new ClassPathResource("feature_label.svmlight.txt").getFile()));
+        trainRecordReader.initialize(config, new FileSplit(new ClassPathResource("feature_label.svmlight.train.txt").getFile()));
         DataSetIterator trainIter = new RecordReaderDataSetIterator(trainRecordReader,batchSize,labelIndex,numClasses);
 
         MySVMLightRecordReader testRecordReader = new MySVMLightRecordReader();
-        testRecordReader.initialize(config, new FileSplit(new ClassPathResource("feature_label.svmlight.txt").getFile()));
+        testRecordReader.initialize(config, new FileSplit(new ClassPathResource("feature_label.svmlight.test.txt").getFile()));
         DataSetIterator testIter = new RecordReaderDataSetIterator(testRecordReader,batchSize,labelIndex,numClasses);
 
         final int numInputs = 15484;
         int hiddenLayer1Num = 2000;
         int iterations = 1;
         long seed = 42;
-        int nEpochs = 20;
+        int nEpochs = 10;
 
         log.info("Build model....");
         MultiLayerConfiguration conf = new NeuralNetConfiguration.Builder()
@@ -113,7 +112,6 @@ public class SenderClassifierSVMLightExample {
                 // log.info(eval.stats());
             }
         }
-
-        System.out.println("Finished...");
+        log.info("Finished...");
     }
 }

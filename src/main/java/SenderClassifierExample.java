@@ -32,16 +32,16 @@ public class SenderClassifierExample {
     private static Logger log = LoggerFactory.getLogger(SenderClassifierExample.class);
 
     public static void main(String[] args) throws Exception {
-        //First: get the dataset using the record reader. CSVRecordReader handles loading/parsing
         int numLinesToSkip = 0;
         char delimiter = ',';
-        //Second: the RecordReaderDataSetIterator handles conversion to DataSet objects, ready for use in neural network
+
         int labelIndex = 15484;     //15485 values in each row of the feature_label_small.csv CSV: 15484 input features followed by an integer label (class) index. Labels are the 15485th value (index 15484) in each row
         int numClasses = 24501;     //24501 classes (types of senders) in the data set. Classes have integer values 0, 1 or 2 ... and so on
-        int batchSize = 8;       //Iris data set: 150 examples total. We are loading all of them into one DataSet (not recommended for large data sets)
-        // 516348 examples, with batchSize is 8, around 64000 iterations per epoch
+        int batchSize = 8;          // 516348 examples, with batchSize is 8, around 64000 iterations per epoch
         int printIterationsNum = 8000; // print score every 8000 iterations
 
+        //First: get the dataset using the record reader. CSVRecordReader handles loading/parsing
+        //Second: the RecordReaderDataSetIterator handles conversion to DataSet objects, ready for use in neural network
         RecordReader recordReader = new CSVRecordReader(numLinesToSkip,delimiter);
         recordReader.initialize(new FileSplit(new ClassPathResource("feature_label_train.csv").getFile()));
         DataSetIterator trainIter = new RecordReaderDataSetIterator(recordReader,batchSize,labelIndex,numClasses);
@@ -50,17 +50,11 @@ public class SenderClassifierExample {
         testRecordReader.initialize(new FileSplit(new ClassPathResource("feature_label_test.csv").getFile()));
         DataSetIterator testIter = new RecordReaderDataSetIterator(testRecordReader,batchSize,labelIndex,numClasses);
 
-//        allData.shuffle();
-//        SplitTestAndTrain testAndTrain = allData.splitTestAndTrain(0.65);  //Use 65% of data for training
-//
-//        DataSet trainingData = testAndTrain.getTrain();
-//        DataSet testData = testAndTrain.getTest();
-
         final int numInputs = 15484;
         int hiddenLayer1Num = 2000;
         int iterations = 1;
         long seed = 42;
-        int nEpochs = 20;
+        int nEpochs = 10;
 
         log.info("Build model....");
         MultiLayerConfiguration conf = new NeuralNetConfiguration.Builder()
@@ -118,7 +112,6 @@ public class SenderClassifierExample {
                 // log.info(eval.stats());
             }
         }
-
-        System.out.println("Finished...");
+        log.info("Finished...");
     }
 }
